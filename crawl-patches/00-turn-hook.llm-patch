@@ -1,0 +1,40 @@
+diff --git a/crawl-ref/source/Makefile.obj b/crawl-ref/source/Makefile.obj
+index 9c180b008795..92f1b64b7eff 100644
+--- a/crawl-ref/source/Makefile.obj
++++ b/crawl-ref/source/Makefile.obj
+@@ -181,6 +181,7 @@ orb.o \
+ ouch.o \
+ outer-menu.o \
+ output.o \
++output-llm.o \
+ package.o \
+ pattern.o \
+ pcg.o \
+diff --git a/crawl-ref/source/main.cc b/crawl-ref/source/main.cc
+index 4876c0c495cc..44a500a9f50e 100644
+--- a/crawl-ref/source/main.cc
++++ b/crawl-ref/source/main.cc
+@@ -106,6 +106,11 @@
+ #include "notes.h"
+ #include "options.h"
+ #include "output.h"
++
++#ifdef LLM_DATA_DUMP
++ #include "output-llm.h"
++#endif
++
+ #include "player.h"
+ #include "player-reacts.h"
+ #include "prompt.h"
+@@ -2482,6 +2487,11 @@ static void _prep_input()
+     if (check_for_interesting_features() && you.running.is_explore())
+         stop_running();
+ 
++#ifdef LLM_DATA_DUMP
++    // Dump game state into a file to be read into a LLM
++    output_data_for_llm();
++#endif
++
+     if (you.seen_portals)
+     {
+         ASSERT(have_passive(passive_t::detect_portals));
