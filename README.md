@@ -1,5 +1,7 @@
 # DCSS-LLM: Agentic LLM Sandbox for Dungeon Crawl Stone Soup
 
+![alt text](docs/screenshot_1.png)
+
 This project implements two things:
 
 1. A harness to connect a [Dungeon Crawl Stone Soup](https://crawl.develz.org/) (DCSS)
