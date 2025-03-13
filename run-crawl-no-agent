@@ -1,0 +1,3 @@
+#!/bin/bash
+./crawl/crawl-ref/source/crawl
+

@@ -1,0 +1,7 @@
+{
+    "_comment": "Copy this file to 'config.json' and fill in the values",
+
+    "api_key": "CHANGEME",
+    "host_uri": "CHANGEME",
+    "model_name": "CHANGEME"
+}

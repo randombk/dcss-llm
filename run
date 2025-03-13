@@ -1,0 +1,3 @@
+#!/bin/bash
+uv run dcssllm/main.py 2>stderr.log
+

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Starts a tmux session with two panels: one on the left with a fixed width of 80 columns, 
+# and one on the right with the remaining space.
+
+export TMUX_NAME="dcss-llm"
+
+tmux -L "$TMUX_NAME" has-session -t "$TMUX_NAME" >/dev/null 2>&1
+if [ "$?" -eq 1 ] ; then
+  set -euo pipefail
+  tmux -L "$TMUX_NAME" new-session -d -s $TMUX_NAME -x 80 -y 24 -n 'left' 'bash' \; split-window -h -p 50 'bash'
+fi
+exec tmux -L "$TMUX_NAME" attach-session -t "$TMUX_NAME"
+
+

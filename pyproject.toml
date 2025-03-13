@@ -1,0 +1,21 @@
+[project]
+name = "dcss-llm"
+version = "0.1.0"
+description = "LLM agent playing Dungeon Crawl Stone Soup"
+readme = "README.md"
+authors = [{name = "David Li", email = "david@david-li.com"}]
+keywords = ["llm", "gpt", "dungeon_crawl_stone_soup", "dcss", "agi"]
+requires-python = ">=3.12"
+dependencies = [
+    "pyte",
+    "openai>=1.64.0",
+]
+
+[tool.setuptools]
+py-modules = ['dcssllm']
+
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
