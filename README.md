@@ -9,6 +9,7 @@ game to a LLM, enabling the exploration of agentic systems in the context of a r
 
 1. A prototype model-agnostic LLM agent to play DCSS.
 
+
 ## Installation
 
 1. Clone the repository recursively to include the DCSS submodule:
@@ -56,3 +57,7 @@ As [others have previously noted](https://arxiv.org/abs/1902.01769), DCSS:
 * Is "an environment that does not penalize slow reaction times", allowing us to run arbitrarily-complex agentic systems to determine the next move.
 * Has an excellent [wiki](http://crawl.chaosforge.org/Crawl_Wiki) and in-game textual descriptions, enabling RAGs.
 * Text/Curses-based interface is easy to parse and interact with programmatically, allowing us to focus on the agent's decision-making rather than navigating the interface.
+
+## Disclaimer
+
+THIS IS A PERSONAL PROJECT and is not affiliated with my employer in any way. The project is based solely on publicly-available information. All opinions are my own and do not necessarily represent the views of my employer.
