@@ -20,7 +20,7 @@ class SubagentSummarizeLastTurn:
         self.what_happened_last_turn = ""
 
 
-    async def ai_turn(self):
+    async def ai_turn(self) -> str:
         completion = await self.client.chat.completions.create(
             model=self.llm.model,
             messages=prep_message(__name__, notnull([

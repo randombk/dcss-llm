@@ -1,4 +1,5 @@
 import typing
+from typing import Dict, Optional, Any, List
 from logging import getLogger
 
 from openai import AsyncOpenAI
@@ -22,7 +23,8 @@ class SubagentFinalAction:
         ]
 
 
-    async def ai_turn(self, current_objective: str):
+    async def ai_turn(self, what_happened_last_turn: str, current_objective: str,
+                      advisors: List[Dict[str, Any]]) -> Optional[Any]:
         completion = await self.client.chat.completions.create(
             model=self.llm.model,
             messages=prep_message(__name__, notnull([
@@ -48,28 +50,39 @@ class SubagentFinalAction:
                     "role": "user",
                     "content": "The current screen is:\n\n\n\n" + self.master.latest_text_only_screen + "\n\n\n\n",
                 },
-                # {
-                #     "role": "user",
-                #     "content": "Without any text formatting, the screen is \n\n\n\n" + self.master.latest_text_only_screen + "\n\n\n\n",
-                # },
                 {
                     "role": "user",
                     "content": f"Your current objective is: {current_objective}",
                 },
+                {
+                    "role": "user",
+                    "content": f"Last turn, you: {what_happened_last_turn}",
+                },
                 self.master.get_message_no_action(),
                 {
                     "role": "user",
+                    "content": "You have a set of advisors that can help you make decisions. They are currently saying:",
+                },
+
+                *[
+                    {
+                        "role": "user",
+                        "content": f"{advisor['name']}: {advisor['message']}",
+                    }
+                    for advisor in advisors
+                ],
+                {
+                    "role": "user",
                     "content": trim_indent("""
-                        Send a key press to the game to make progress on your current objective.
+                        Your job is to decide what action to take next. Look at the screen and the information provided by
+                        your advisors, and decide what action you should take next. Send a key press to the game to make
+                        progress on your current objective.
 
                         Remember that you are located at the '@' symbol, and that '#' represent walls. Avoid constantly
                         trying to walk into walls.
 
                         Use the map to figure out where you are and where you can go. Use the information on the screen
                         as well as your previous responses and though processes to make decisions.
-                                           
-                        Things may not be as simple as they seem. For example, if your objective is to go to the left,
-                        you may need to go up or down first to find a valid path to the left.
 
                         Refer to the instructions to help you understand what you can do in the game and what the symbols mean.
                     """)

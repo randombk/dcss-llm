@@ -1,4 +1,5 @@
 
+import asyncio
 from typing import List
 from logging import getLogger
 
@@ -6,6 +7,7 @@ from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMe
 from dcssllm.agent.util import *
 from dcssllm.agent.base_agent import BaseAgent
 from dcssllm.agent.v1.general_instructions import *
+from dcssllm.agent.v1.subagent_advisor_navigation import SubagentAdvisorNavigation
 from dcssllm.agent.v1.subagent_current_objective import SubagentCurrentObjective
 from dcssllm.agent.v1.subagent_final_action import SubagentFinalAction
 from dcssllm.agent.v1.subagent_start_game import SubagentStartGame
@@ -25,6 +27,7 @@ class V1Agent(BaseAgent):
     def __init__(self, game: CursesApplication,
                  llm_default: LLMConfig,
                  llm_start_game: LLMConfig = None, llm_summarize_last_turn: LLMConfig = None, 
+                 llm_advisor_navigation: LLMConfig = None,
                  llm_current_objective: LLMConfig = None,
                  llm_final_action: LLMConfig = None):
         super().__init__()
@@ -55,6 +58,7 @@ class V1Agent(BaseAgent):
         self.subagent_start_game = SubagentStartGame(self, llm_start_game or llm_default)
         self.subagent_summarize_last_turn = SubagentSummarizeLastTurn(self, llm_summarize_last_turn or llm_default)
         self.subagent_current_objective = SubagentCurrentObjective(self, llm_current_objective or llm_default)
+        self.subagent_advisor_navigation = SubagentAdvisorNavigation(self, llm_advisor_navigation or llm_default)
         self.subagent_final_action = SubagentFinalAction(self, llm_final_action or llm_default)
 
 
@@ -113,12 +117,28 @@ class V1Agent(BaseAgent):
 
         if self.game_state == "main_game":
             if last_turn_sent_action:
-                await self.subagent_summarize_last_turn.ai_turn()
+                what_happened_last_turn = await self.subagent_summarize_last_turn.ai_turn()
+            else:
+                what_happened_last_turn = self.subagent_summarize_last_turn.what_happened_last_turn
 
             current_objective = await self.subagent_current_objective.ai_turn(
-                what_happened_last_turn=self.subagent_summarize_last_turn.what_happened_last_turn,
+                what_happened_last_turn=what_happened_last_turn,
             )
-            await self.subagent_final_action.ai_turn(current_objective)
+
+            advisors = [
+                self.subagent_advisor_navigation.ai_turn(
+                    what_happened_last_turn=what_happened_last_turn,
+                    current_objective=current_objective,
+                )
+            ]
+
+            advisors = await asyncio.gather(*advisors)
+
+            await self.subagent_final_action.ai_turn(
+                what_happened_last_turn=what_happened_last_turn,
+                current_objective=current_objective,
+                advisors = advisors,
+            )
 
 
     def get_message_no_action(self):

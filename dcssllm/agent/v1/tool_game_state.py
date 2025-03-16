@@ -28,6 +28,9 @@ class Position:
 
     def __hash__(self) -> int:
         return hash((self.x, self.y))
+    
+    def __str__(self) -> str:
+        return f"({self.x}, {self.y})"
 
 
 @dataclass
@@ -188,7 +191,7 @@ class GameState:
         """Get the cell at the specified coordinates."""
         return self.map.get(position)
 
-    def get_visible_area(self, view_radius: int = 8) -> List[List[Optional[Cell]]]:
+    def get_visible_area(self, view_radius: int = 8, require_knowledge: bool = True) -> List[List[Optional[Cell]]]:
         """Return a subset of the map that's visible to the player within the given radius."""
         if not self.player_pos:
             return None
@@ -210,7 +213,8 @@ class GameState:
         for y in range(min_y, max_y + 1):
             for x in range(min_x, max_x + 1):
                 cell = self.get_cell(Position(x, y))
-                visible_area[y - min_y][x - min_x] = cell
+                if cell and ((not require_knowledge) or cell.known):
+                    visible_area[y - min_y][x - min_x] = cell
 
         return visible_area
 
@@ -274,14 +278,15 @@ class GameState:
 
         return (min_x, min_y, max_x, max_y)
 
-    def get_map_section(self, min_pos: Position, max_pos: Position) -> str:
+    def get_map_section(self, min_pos: Position, max_pos: Position,
+                        require_knowledge: bool = True) -> str:
         """Get a section of the map as a string representation."""
         ret = ""
         for y in range(min_pos.y, max_pos.y + 1):
             row = []
             for x in range(min_pos.x, max_pos.x + 1):
                 cell = self.get_cell(Position(x, y))
-                if cell:
+                if cell and ((not require_knowledge) or cell.known):
                     char = "." if cell.traversable else "#"
                     if self.player_pos and x == self.player_pos.x and y == self.player_pos.y:
                         char = "@"
@@ -290,6 +295,12 @@ class GameState:
                     row.append(" ")  # Unknown space
             ret += "".join(row) + "\n"
         return ret
+
+    def get_map(self, require_knowledge: bool = True) -> str:
+        """Get the complete map as a string representation."""
+        map_bounds = self.get_map_bounds()
+        return self.get_map_section(Position(map_bounds[0], map_bounds[1]), Position(map_bounds[2], map_bounds[3]),
+                                    require_knowledge=require_knowledge)
 
     def get_summary_without_map(self) -> str:
         """Get a summary of the game state without the map."""

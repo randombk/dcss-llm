@@ -49,10 +49,13 @@ class SubagentCurrentObjective:
                         Your job is to decide what you want to do in the next few turns. Look around you, think about what
                         long-term plans you have, and decide what you want to do next. You can change your mind later.
                         You should always have an objective in mind, even if it's just to explore the map or to find the stairs.
-                        
+
                         Currently, your objective is set to "{self.current_objective}".
                         You have been doing this objective for the last {self.master.iterations - self.last_objective_change} turns.
                         If you've been at this a long time without notable results, consider changing your objective.
+
+                        Be specific. For example, don't just say "explore the map". Instead, say "explore the unexplored parts
+                        of the map to the <direction>".
 
                         If you want to keep this objective, write "KEEP_CURRENT" and nothing else. Reasons you may want to change your objective:
                         - You've completed your current objective
@@ -64,10 +67,10 @@ class SubagentCurrentObjective:
                         If you want to change your objective, write one or two sentences describing your new objective.
 
                         Example objective statements include:
-                        - "Explore the unexplored parts of the map to the bottom right."
-                        - "Walk to the stairs on the left and go down to the next floor."
-                        - "Run away from the monster to the right and heal up."
-                        - "Walk to the pile of gold to the right and pick it up."
+                        - "Explore the unexplored parts of the map to the <direction>."
+                        - "Walk to the stairs on the <direction> and go down to the next floor."
+                        - "Run away from the monster and heal up."
+                        - "Walk to the pile of gold to the <directin> and pick it up."
                         Don't feel constrained by these examples.
 
                         Just write the objective. Don't write anything else, such as "I want to" or "I will".
@@ -80,11 +83,13 @@ class SubagentCurrentObjective:
         if response.refusal:
             logger.info("Refusal:", response.refusal)
 
-        if 'KEEP_CURRENT' in response.content:
+        new_objective = strip_reasoning(response.content or "").strip()
+        if 'KEEP_CURRENT' in new_objective or new_objective == self.current_objective:
             logger.info(f"Keeping current objective: {self.current_objective}")
             return self.current_objective
-        else:    
-            self.current_objective = strip_reasoning(response.content or "")
+        else:
+            self.current_objective = new_objective
             logger.info(f"New objective: {self.current_objective}")
             self.last_objective_change = self.master.iterations
         return self.current_objective
+
