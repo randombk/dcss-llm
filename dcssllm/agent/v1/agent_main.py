@@ -11,6 +11,7 @@ from dcssllm.agent.v1.subagent_final_action import SubagentFinalAction
 from dcssllm.agent.v1.subagent_start_game import SubagentStartGame
 from dcssllm.agent.v1.subagent_summarize_last_turn import SubagentSummarizeLastTurn
 from dcssllm.agent.v1.tool import BaseTool
+from dcssllm.agent.v1.tool_game_state import ToolGameState
 from dcssllm.agent.v1.tool_longterm_memory import ToolLongTermMemory
 from dcssllm.agent.v1.tool_send_key_press import ToolSendKeyPress
 from dcssllm.agent.v1.tool_shortterm_memory import ToolShortTermMemory
@@ -42,10 +43,12 @@ class V1Agent(BaseAgent):
         self.tool_send_key_press = ToolSendKeyPress(self, game)
         self.tool_longterm_memory = ToolLongTermMemory(self)
         self.tool_shortterm_memory = ToolShortTermMemory(self)
+        self.tool_game_state = ToolGameState(self)
         self.tools: List[BaseTool] = [
             self.tool_send_key_press,
             self.tool_longterm_memory,
             self.tool_shortterm_memory,
+            self.tool_game_state,
         ]
 
         # Subagents for running specific tasks

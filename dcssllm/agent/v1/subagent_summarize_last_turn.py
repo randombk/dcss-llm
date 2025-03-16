@@ -40,26 +40,23 @@ class SubagentSummarizeLastTurn:
                     "role": "user",
                     "content": trim_indent(f"""
                         Your job is to summarize what happened in the last turn. I will give you the previous
-                        screen, the action(s) you took, and the current screen. Your job is to summarize what
-                        happened in the last turn.
+                        screen, the action(s) you took, and the current screen. Compare the two screens and determine
+                        what changed.
                     """),
                 },
                 {
                     "role": "user",
-                    "content": "The previous screen was:\n\n" + self.master.previous_screen,
+                    "content": "The previous screen was:\n\n" + self.master.previous_text_only_screen,
                 },
-                # {
-                #     "role": "user",
-                #     "content": "Without any text formatting, the screen is \n\n\n\n" + self.master.latest_text_only_screen + "\n\n\n\n",
-                # },
                 {
                     "role": "user",
-                    "content": f"In the previous turn, you entered the following key: '{self.master.tool_send_key_press.previous_key}'",
+                    "content": f"You pressed the following key: '{self.master.tool_send_key_press.previous_key}'",
                 },
                 {
                     "role": "user",
                     "content": "The current screen is now:\n\n" + self.master.latest_text_only_screen,
                 },
+                self.master.tool_game_state.get_state_diff_message(),
                 self.master.get_message_no_action(),
                 {
                     "role": "user",
@@ -73,9 +70,6 @@ class SubagentSummarizeLastTurn:
                             "I opened the inventory menu."
                             "I tried to move to the left, but nothing happened."
 
-                        In particular, note down when we seem to be walking into a wall. We can determine this by
-                        noticing that the screen did not change after pressing a movement key.
-                        
                         Be careful when you say you're 'next to' something. Only say that if your character is actually
                         right next to the thing you're talking about.
                         
