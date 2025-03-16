@@ -13,6 +13,9 @@ if typing.TYPE_CHECKING:
 logger = getLogger(__name__)
 
 class SubagentStartGame:
+    """
+    In charge of starting a new game or resuming an existing one.
+    """
     def __init__(self, master: "V1Agent", llm: LLMConfig):
         self.master = master
         self.llm = llm
@@ -25,7 +28,7 @@ class SubagentStartGame:
     async def ai_turn(self):
         completion = await self.client.chat.completions.create(
             model=self.llm.model,
-            messages=consolidate(notnull([
+            messages=prep_message(__name__, notnull([
                 {
                     "role": "system",
                     "content": GENERAL_AGENT_INTRO,

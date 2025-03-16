@@ -23,7 +23,7 @@ class SubagentSummarizeLastTurn:
     async def ai_turn(self):
         completion = await self.client.chat.completions.create(
             model=self.llm.model,
-            messages=consolidate(notnull([
+            messages=prep_message(__name__, notnull([
                 {
                     "role": "system",
                     "content": GENERAL_AGENT_INTRO,
@@ -46,7 +46,7 @@ class SubagentSummarizeLastTurn:
                 },
                 {
                     "role": "user",
-                    "content": "The previous screen was:\n\n" + self.master.previous_text_only_screen,
+                    "content": "The previous screen was:\n\n```\n" + self.master.previous_text_only_screen + "\n```\n",
                 },
                 {
                     "role": "user",
@@ -54,7 +54,7 @@ class SubagentSummarizeLastTurn:
                 },
                 {
                     "role": "user",
-                    "content": "The current screen is now:\n\n" + self.master.latest_text_only_screen,
+                    "content": "The current screen is now:\n\n```\n" + self.master.latest_text_only_screen + "\n```\n",
                 },
                 self.master.tool_game_state.get_state_diff_message(),
                 self.master.get_message_no_action(),

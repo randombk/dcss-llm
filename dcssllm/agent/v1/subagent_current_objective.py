@@ -24,7 +24,7 @@ class SubagentCurrentObjective:
     async def ai_turn(self, what_happened_last_turn: str):
         completion = await self.client.chat.completions.create(
             model=self.llm.model,
-            messages=consolidate(notnull([
+            messages=prep_message(__name__, notnull([
                 {
                     "role": "system",
                     "content": GENERAL_AGENT_INTRO,

@@ -67,7 +67,7 @@ void output_data_for_llm()
 {
     // Open and truncate 'llm_data.log'
     std::ofstream outfile;
-    outfile.open("llm_data.log", std::ofstream::out | std::ofstream::trunc);
+    outfile.open("tmp/llm_data.log", std::ofstream::out | std::ofstream::trunc);
 
     outfile << "Dumping game state" << std::endl;
     outfile << "GAME_SEED: " << you.game_seed << std::endl;
