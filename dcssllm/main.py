@@ -47,7 +47,7 @@ async def main():
     #
     # Define common LLMs we can use
     #
-    llm_local = LLMConfig('http://127.0.0.1:8080/v1/', local_api_key, 'local')
+    llm_local = LLMConfig('http://127.0.0.1:5001/v1/', local_api_key, 'local')
 
     # Groq; Limit: 500K tokens/day, each
     groq_llama32_8b = LLMConfig('https://api.groq.com/openai/v1/', groq_api_key, 'llama-3.1-8b-instant')

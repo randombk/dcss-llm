@@ -9,6 +9,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pyte",
     "openai>=1.64.0",
+    "langchain[openai]",
 ]
 
 [tool.setuptools]

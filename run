@@ -2,6 +2,7 @@
 
 # If the tmp folder doesn't exist, create it as a symlink to a random folder in /tmp
 if [ ! -d "tmp" ]; then
+    rm -f tmp
     ln -s "$(mktemp -d --suffix=dcssllm)" tmp
 fi
 
