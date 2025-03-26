@@ -11,6 +11,7 @@ from dcssllm.curses_utils import CursesApplication
 from dcssllm.keycodes import Keycode
 from dcssllm.llmutils import LLMConfig
 
+logger = logging.getLogger(__name__)
 
 def configure_logging():
     # Create a console handler that outputs DEBUG level logs.
@@ -102,10 +103,23 @@ async def main():
         signal.signal(signal.SIGINT, signal_handler)
 
         # Main AI Loop
+        last_action_time = time.time()
         while True:
-            last_action_time = time.time()
-            app.await_update()
-            screen = app.get_current_screen()
+            # Wait for screen to stabilize
+            # This is needed to support some commands that take a while to execute
+            # (i.e. auto-explore and auto-move)
+            while True:
+                await app.await_update()
+                screen1 = app.get_current_screen()
+                await app.await_update(0.5)
+                screen2 = app.get_current_screen()
+                if screen1 == screen2:
+                    break
+                else:
+                    logger.debug("Screen changed - assuming the game is still updating")
+            
+            # Get the screen
+            screen = screen2
             text_only_screen = '\n'.join(app.screen.display)
 
             sys.stdout.write(screen)
@@ -118,6 +132,7 @@ async def main():
             await agent.ai_turn()
 
             await asyncio.sleep(max(0, min_seconds_between_actions - (time.time() - last_action_time)))
+            last_action_time = time.time()
 
 if __name__ == "__main__":
     asyncio.run(main())

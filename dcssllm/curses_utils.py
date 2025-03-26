@@ -1,3 +1,4 @@
+import asyncio
 import os
 import time
 import pty
@@ -108,8 +109,9 @@ class CursesApplication:
     def send_text(self, key: str):
         os.write(self.master, key.encode())
 
-    def await_update(self, delay: float = 0.1):
-        time.sleep(delay)
+    async def await_update(self, delay: float = 0):
+        if delay > 0:
+            await asyncio.sleep(delay)
         self._feed_terminal_output()
 
     def get_current_screen(self):
