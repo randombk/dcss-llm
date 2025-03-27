@@ -28,7 +28,6 @@ class SubagentMainGame:
         self.tools = [
             self.master.tool_send_key_press,
             self.master.tool_game_state,
-            self.master.tool_write_short_term_memory,
             self.master.tool_write_long_term_memory,
         ]
         self._previous_turn_actions = []
@@ -42,7 +41,6 @@ class SubagentMainGame:
                 *state["previous_turn_summary"],
                 HumanMessage(f"The current turn is {state['iteration']}."),
                 self.master.long_term_memory.create_message(),
-                self.master.short_term_memory.create_message(),
                 *self.master.tool_game_state.create_message(),
                 *state["messages"]
             ])
@@ -70,7 +68,7 @@ class SubagentMainGame:
 
     async def ai_turn(self):
         formatted_previous_turn_actions = []
-        for (iteration, screen, message) in self._previous_turn_actions[-10:]:
+        for (iteration, screen, message) in self._previous_turn_actions[-20:]:
             formatted_previous_turn_actions.extend(prep_message([
                 HumanMessage(f"Turn {iteration}:"),
                 HumanMessage(f"The current screen is:\n\n{screen}"),

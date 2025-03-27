@@ -13,7 +13,6 @@ from dcssllm.agent.v1.subagent_start_game import SubagentStartGame
 from dcssllm.agent.v1.tool import StatefulTool
 from dcssllm.agent.v1.tool_game_state import ToolGameState
 from dcssllm.agent.v1.tool_longterm_memory import LongTermMemory, ToolWriteLongTermMemory
-from dcssllm.agent.v1.tool_shortterm_memory import ShortTermMemory, ToolWriteShortTermMemory
 from dcssllm.agent.v1.tool_send_key_press import ToolSendKeyPress
 from dcssllm.curses_utils import CursesApplication
 
@@ -44,9 +43,6 @@ class V1Agent(BaseAgent):
         # Init tools - do before initializing subagents
         self.tool_send_key_press = ToolSendKeyPress(self, game)
         
-        self.short_term_memory = ShortTermMemory()
-        self.tool_write_short_term_memory = ToolWriteShortTermMemory(self, self.short_term_memory)
-        
         self.long_term_memory = LongTermMemory()
         self.tool_write_long_term_memory = ToolWriteLongTermMemory(self, self.long_term_memory)
 
@@ -54,7 +50,6 @@ class V1Agent(BaseAgent):
         self.tools: List[StatefulTool] = [
             self.tool_send_key_press,
             self.tool_game_state,
-            self.tool_write_short_term_memory,
             self.tool_write_long_term_memory,
         ]
 
