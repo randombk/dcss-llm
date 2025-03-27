@@ -1,28 +1,26 @@
 import abc
 from logging import getLogger
-import typing
-from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
+from typing import *
+from langchain_core.tools import BaseTool
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from dcssllm.agent.v1.agent_main import V1Agent
 
 
 logger = getLogger(__name__)
 
 
-class BaseTool(abc.ABC):
+class StatefulTool(BaseTool):
+    """
+    A tool that contains stateful information about the play session.
+    """
+    # master: Any
+
     def __init__(self, master: "V1Agent"):
         super().__init__()
-        self.master = master
-    
-    @abc.abstractmethod
-    def process_tool_call(self, tool_call: ChatCompletionMessageToolCall):
-        pass
+        self._master = master
 
     @abc.abstractmethod
     def on_new_turn(self):
         pass
 
-    @abc.abstractmethod
-    def get_tool_description(self):
-        return []

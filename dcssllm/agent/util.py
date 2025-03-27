@@ -3,28 +3,32 @@ from typing import List, Any, Optional
 from openai.types.chat import ChatCompletionMessageParam
 
 
-def prep_message(agent_name: str, value: List[ChatCompletionMessageParam]) -> List[ChatCompletionMessageParam]:
-    """
-    Conversation roles must alternate user/assistant/user/assistant...
+# def prep_message(agent_name: str, value: List[ChatCompletionMessageParam]) -> List[ChatCompletionMessageParam]:
+#     """
+#     Conversation roles must alternate user/assistant/user/assistant...
 
-    This function consolidates adjacent messages of the same role into a single message.
-    """
-    if not value:
-        return value
+#     This function consolidates adjacent messages of the same role into a single message.
+#     """
+#     if not value:
+#         return value
 
-    consolidated = [value[0]]
-    for message in value[1:]:
-        if message['role'] == consolidated[-1]['role']:
-            consolidated[-1]['content'] += "\n\n" + message['content']
-        else:
-            consolidated.append(message)
+#     consolidated = [value[0]]
+#     for message in value[1:]:
+#         if message['role'] == consolidated[-1]['role']:
+#             consolidated[-1]['content'] += "\n\n" + message['content']
+#         else:
+#             consolidated.append(message)
 
-    agent_name = agent_name.replace("/", "__")
-    with open(f"tmp/agent-{agent_name}.prompt.log", "w") as f:
-        for message in consolidated:
-            f.write(f"{message['role']}: {message['content']}\n\n")
+#     agent_name = agent_name.replace("/", "__")
+#     with open(f"tmp/agent-{agent_name}.prompt.log", "w") as f:
+#         for message in consolidated:
+#             f.write(f"{message['role']}: {message['content']}\n\n")
 
-    return consolidated
+#     return consolidated
+
+
+def merge_and_trim_messages(values: List[str]) -> str:
+    return '\n\n'.join(trim_indent(x) for x in values)
 
 
 def notnull(value: List[Optional[Any]]) -> List[Any]:

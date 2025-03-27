@@ -6,10 +6,13 @@ import json
 import signal
 import os
 
+from langchain.chat_models import init_chat_model
+
 from dcssllm.agent.v1.agent_main import V1Agent
 from dcssllm.curses_utils import CursesApplication
+from dcssllm.non_consuming_rate_limiter import NonConsumingRateLimiter
 from dcssllm.keycodes import Keycode
-from dcssllm.llmutils import LLMConfig
+from dcssllm.quota_aware_router import QuotaAwareRouter
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,7 @@ async def main():
     # Resolve relative path to '~'
     with open(os.path.expanduser("~/.config/llm2sh/llm2sh.json")) as f:
         secrets = json.load(f)
-        local_api_key = secrets.get("local_api_key", "")
+        local_api_key = secrets.get("local_api_key", "NONE")
         openai_api_key = secrets.get("openai_api_key", "")
         anthropic_api_key = secrets.get("anthropic_api_key", "")
         openrouter_api_key = secrets.get("openrouter_api_key", "")
@@ -45,32 +48,64 @@ async def main():
         cerebras_api_key = secrets.get("cerebras_api_key", "")
         gemini_api_key = secrets.get("gemini_api_key", "")
 
-    #
-    # Define common LLMs we can use
-    #
-    llm_local = LLMConfig('http://127.0.0.1:5001/v1/', local_api_key, 'local')
+    llm = QuotaAwareRouter([
+        #
+        # Prefer Gemini when available
+        #
 
-    # Groq; Limit: 500K tokens/day, each
-    groq_llama32_8b = LLMConfig('https://api.groq.com/openai/v1/', groq_api_key, 'llama-3.1-8b-instant')
-    groq_llama3_70b_8192 = LLMConfig('https://api.groq.com/openai/v1/', groq_api_key, 'llama3-70b-8192')
-    groq_llama3_8b_8192 = LLMConfig('https://api.groq.com/openai/v1/', groq_api_key, 'llama3-8b-8192')
+        # Gemini 2 Flash
+        (
+            init_chat_model(
+                'gemini-2.0-flash',
+                model_provider="openai",
+                openai_api_base='https://generativelanguage.googleapis.com/v1beta/openai/',
+                openai_api_key=gemini_api_key,
+            ),
+            [
+                NonConsumingRateLimiter(requests_per_second=15/60, max_bucket_size=10)
+            ]
+        ),
 
-    # Groq; No token limit; 1K queries/day
-    # groq_qwen_25_32b = LLMConfig('https://api.groq.com/openai/v1/', groq_api_key, 'qwen-2.5-32b')
-    groq_deepseek_r1_llama70 = LLMConfig('https://api.groq.com/openai/v1/', groq_api_key, 'deepseek-r1-distill-llama-70b')
+        # Gemini 2 Flash Lite
+        (
+            init_chat_model(
+                'gemini-2.0-flash-lite',
+                model_provider="openai",
+                openai_api_base='https://generativelanguage.googleapis.com/v1beta/openai/',
+                openai_api_key=gemini_api_key,
+            ),
+            [
+                NonConsumingRateLimiter(requests_per_second=30/60, max_bucket_size=10)
+            ]
+        ),
 
-    # Cerebras; Limit: 1M tokens/day, each, 8192 context limit
-    cerebras_llama3_8b = LLMConfig('https://api.cerebras.ai/v1/', cerebras_api_key, 'llama3.1-8b')
-    cerebras_llama3_70b = LLMConfig('https://api.cerebras.ai/v1/', cerebras_api_key, 'llama3.3-70b')
-    # cerebras_deepseek_r1_llama70 = LLMConfig('https://api.cerebras.ai/v1/', cerebras_api_key, 'deepseek-r1-distill-llama-70b')
-
-    # Gemini;
-
-    # Limit: 15 RPM 1500 req/day
-    gemini_2_flash = LLMConfig('https://generativelanguage.googleapis.com/v1beta/openai/', gemini_api_key, 'gemini-2.0-flash')
-
-    # Limit: 30 RPM 1500 req/day
-    gemini_2_lite_flash = LLMConfig('https://generativelanguage.googleapis.com/v1beta/openai/', gemini_api_key, 'gemini-2.0-flash')
+        # Gemini 2 Flash Exp
+        (
+            init_chat_model(
+                'gemini-2.0-flash-exp',
+                model_provider="openai",
+                openai_api_base='https://generativelanguage.googleapis.com/v1beta/openai/',
+                openai_api_key=gemini_api_key,
+            ),
+            [
+                NonConsumingRateLimiter(requests_per_second=10/60, max_bucket_size=10)
+            ]
+        ),
+        
+        # Local: slow, 32K context window, various models
+        # Note: llama.cpp has issues where models can't produce content while also calling tools in the same turn.
+        (
+            init_chat_model(
+                'local',
+                model_provider="openai",
+                openai_api_base='http://127.0.0.1:5001/v1/',
+                openai_api_key=local_api_key or "NONE",
+                # Llama.cpp has issues with streaming with tool calls
+                disable_streaming=True 
+            ),
+            []
+        ),
+    ])
 
     min_seconds_between_actions = 3
     configure_logging()
@@ -78,7 +113,7 @@ async def main():
     with CursesApplication(command, init_wait_secs=2) as app:
         agent = V1Agent(
             game=app,
-            llm_default=llm_local,
+            llm_default=llm,
             # llm_default=gemini_2_flash,
             # llm_start_game=llm_local,
             # llm_summarize_last_turn=groq_deepseek_r1_llama70,
@@ -128,8 +163,7 @@ async def main():
             with open('tmp/text_only_screen.log', 'w') as f:
                 f.write(text_only_screen)
 
-            agent.on_new_screen(screen, text_only_screen)
-            await agent.ai_turn()
+            await agent.ai_turn(screen, text_only_screen)
 
             await asyncio.sleep(max(0, min_seconds_between_actions - (time.time() - last_action_time)))
             last_action_time = time.time()
