@@ -5,6 +5,7 @@ from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_core.tools.base import ArgsSchema
 from pydantic import BaseModel, Field
 
+from dcssllm.agent.util import trim_indent
 from dcssllm.agent.v1.tool import StatefulTool
 from dcssllm.curses_utils import CursesApplication
 from dcssllm.keycodes import Keycode
@@ -22,7 +23,13 @@ class Input(BaseModel):
 
 class ToolSendKeyPress(StatefulTool):
     name: str = "send_key_press"
-    description: str = "Sends a key press to the game and end your turn. You may only send a single key press per function call."
+    description: str = trim_indent("""
+        Sends a key press to the game and end your turn. You may only send a single key press per tool call.
+
+        You should only send a key press once you are sure it's the right one. You should not send multiple key presses.
+        You should not send a key press alongside other tool calls. Make sure you have saved everything you want to save
+        in your memory before sending a key press.
+    """)
     args_schema: Optional[ArgsSchema] = Input
     return_direct: bool = True
 
@@ -32,12 +39,12 @@ class ToolSendKeyPress(StatefulTool):
         self._game = game
         self._sent_key = False
         self._previous_key = ''
-    
+
     def on_new_turn(self):
         self._sent_key = False
 
     def _run(
-        self, keycode: str, 
+        self, keycode: str,
         run_manager: Optional[CallbackManagerForToolRun] = None
     ) -> str:
         if not self._sent_key:

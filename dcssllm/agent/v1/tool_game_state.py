@@ -1,8 +1,9 @@
 from logging import getLogger
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, List
 
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_core.tools.base import ArgsSchema
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field
 
 from dcssllm.agent.v1.game_state import GameState
@@ -21,8 +22,8 @@ class Input(BaseModel):
 
 
 class ToolGameState(StatefulTool):
-    name: str = "get_game_state"
-    description: str = "Gets the current state of the game and any changes since the last turn."
+    name: str = "get_game_state_change_since_last_turn"
+    description: str = "Gets a summary of the changes in the game state since the last turn."
     args_schema: Optional[ArgsSchema] = Input
 
     def __init__(self, master: "V1Agent"):
@@ -46,3 +47,13 @@ class ToolGameState(StatefulTool):
             return "No changes in game state since last turn."
             
         return "These things changed in the game state:\n\n" + delta_summary
+
+    def create_message(self) -> List[HumanMessage]:
+        if self._current_state:
+            return [
+                HumanMessage(f"Here is the current state of the game:\n\n{self._current_state.get_summary_without_map()}"),
+                HumanMessage(f"Here is your memory of the game map:\n\n{self._current_state.get_map()}"),
+                HumanMessage(self._current_state.get_nearby_enemy_summary()),
+            ]
+        else:
+            return []

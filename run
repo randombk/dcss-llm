@@ -4,7 +4,10 @@
 if [ ! -d "tmp" ]; then
     rm -f tmp
     ln -s "$(mktemp -d --suffix=dcssllm)" tmp
+    mkdir -p tmp/agent
 fi
+rm -f tmp/agent/*.log
+rm -f tmp/llm_data.log
 
 uv run dcssllm/main.py 2>tmp/stderr.log
 

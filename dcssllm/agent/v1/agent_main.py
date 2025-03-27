@@ -2,12 +2,13 @@
 from typing import List
 from logging import getLogger
 
-from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
 from langchain_core.messages import HumanMessage
 from langchain_core.language_models.chat_models import BaseChatModel
+
 from dcssllm.agent.util import *
 from dcssllm.agent.base_agent import BaseAgent
 from dcssllm.agent.v1.general_instructions import *
+from dcssllm.agent.v1.subagent_main_game import SubagentMainGame
 from dcssllm.agent.v1.subagent_start_game import SubagentStartGame
 from dcssllm.agent.v1.tool import StatefulTool
 from dcssllm.agent.v1.tool_game_state import ToolGameState
@@ -23,16 +24,12 @@ class V1Agent(BaseAgent):
     def __init__(self, game: CursesApplication,
                  llm_default: BaseChatModel,
                  llm_start_game: BaseChatModel = None, 
-                 llm_summarize_last_turn: BaseChatModel = None, 
-                 llm_advisor_navigation: BaseChatModel = None,
-                 llm_current_objective: BaseChatModel = None,
-                 llm_final_action: BaseChatModel = None):
+                 llm_main_game: BaseChatModel = None,):
         super().__init__()
         self.game = game # Connection to the game instance
 
         # Current game mode (main_menu, main_game, etc)
         self.game_state = ""
-        # self.current_dialog = ""
 
         # Screen data and history
         self.latest_screen = ""
@@ -63,10 +60,7 @@ class V1Agent(BaseAgent):
 
         # Subagents for running specific tasks
         self.subagent_start_game = SubagentStartGame(self, llm_start_game or llm_default)
-        # self.subagent_summarize_last_turn = SubagentSummarizeLastTurn(self, llm_summarize_last_turn or llm_default)
-        # self.subagent_current_objective = SubagentCurrentObjective(self, llm_current_objective or llm_default)
-        # self.subagent_advisor_navigation = SubagentAdvisorNavigation(self, llm_advisor_navigation or llm_default)
-        # self.subagent_final_action = SubagentFinalAction(self, llm_final_action or llm_default)
+        self.subagent_main_game = SubagentMainGame(self, llm_main_game or llm_default)
 
     async def ai_turn(self, screen: str, text_only_screen: str):
         await super().ai_turn()
@@ -83,30 +77,7 @@ class V1Agent(BaseAgent):
             return
 
         if self.game_state == "main_game":
-            raise NotImplementedError("Main game mode not implemented")
-            # if last_turn_sent_action:
-            #     what_happened_last_turn = await self.subagent_summarize_last_turn.ai_turn()
-            # else:
-            #     what_happened_last_turn = self.subagent_summarize_last_turn.what_happened_last_turn
-
-            # current_objective = await self.subagent_current_objective.ai_turn(
-            #     what_happened_last_turn=what_happened_last_turn,
-            # )
-
-            # advisors = [
-            #     self.subagent_advisor_navigation.ai_turn(
-            #         what_happened_last_turn=what_happened_last_turn,
-            #         current_objective=current_objective,
-            #     )
-            # ]
-
-            # advisors = await asyncio.gather(*advisors)
-
-            # await self.subagent_final_action.ai_turn(
-            #     what_happened_last_turn=what_happened_last_turn,
-            #     current_objective=current_objective,
-            #     advisors = advisors,
-            # )
+            await self.subagent_main_game.ai_turn()
 
 
     def get_message_no_action(self):
@@ -134,14 +105,6 @@ class V1Agent(BaseAgent):
         else:
             self.nothing_happened = False
             self.nothing_happened_keys = set()
-
-        # Try to infer if we're in a dialog or menu
-        # if "] set a skill target" in text_only_screen:
-        #     self.current_dialog = "skills"
-        # elif ", Time: " in text_only_screen:
-        #     self.current_dialog = "player_info"
-        # else:
-        #     self.current_dialog = ""
 
         # Detect if we're in the main menu
         if "Hello, welcome to Dungeon Crawl Stone Soup" in text_only_screen and self.game_state != "main_menu":

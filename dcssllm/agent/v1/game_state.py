@@ -1,9 +1,8 @@
 from logging import getLogger
 from dataclasses import dataclass
-from typing import List, Dict, Tuple, Optional, Set, Any
+from typing import List, Dict, Tuple, Optional, Any
 
 from dcssllm.agent.util import trim_indent
-from dcssllm.agent.v1.tool import Tool
 
 
 logger = getLogger(__name__)
@@ -70,7 +69,7 @@ class GameState:
             with open(filename, 'r') as f:
                 lines = f.readlines()
         except FileNotFoundError:
-            logger.error(f"Error: Could not find {filename}")
+            logger.warn(f"Could not find {filename}")
             return
 
         current_section: Optional[str] = None
@@ -254,8 +253,8 @@ class GameState:
             "level": self.player_level,
             "gold": self.player_gold,
             "turn": self.turn_number,
-            "inventory_count": len(self.inventory),
-            "equipment_count": len(self.equipment)
+            "inventory": self.inventory,
+            "equipment": self.equipment,
         }
 
     def get_map_bounds(self) -> Optional[Tuple[int, int, int, int]]:
@@ -305,6 +304,15 @@ class GameState:
             Monsters visible: {len(self.get_nearby_monsters())}
             Items nearby: {len(self.get_nearby_items())}
         """)
+    
+    def get_nearby_enemy_summary(self) -> str:
+        """Get a summary of the nearby enemies."""
+        nearby = self.get_nearby_monsters()
+        if not nearby:
+            return "No enemies nearby."
+
+        ret = "\n".join([f" - {m.name} at {m.position} ({dist} tiles away)" for m, dist in nearby])
+        return trim_indent(f"{len(nearby)} Enemies nearby:\n{ret}")
 
     def get_delta_summary(self, previous: "GameState") -> str:
         """Write a brief summary of the differences between two game states, ignoring the map."""

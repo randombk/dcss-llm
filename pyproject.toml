@@ -10,6 +10,7 @@ dependencies = [
     "pyte",
     "openai>=1.64.0",
     "langchain[openai]",
+    "langgraph",
 ]
 
 [tool.setuptools]
