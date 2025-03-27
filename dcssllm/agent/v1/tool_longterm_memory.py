@@ -44,7 +44,7 @@ class ToolWriteLongTermMemory(StatefulTool):
         Do not use this to remember things that are not important, or that you can easily look up.
         For example, you don't need to remember your current health, as that is displayed in the UI.
 
-        This is a Key-Value store.
+        This is a Key-Value store. Give your keys useful names. Don't be afraid to put multiline text into the values.
     """)
     args_schema: Optional[ArgsSchema] = ToolWriteLongTermMemoryInput
 

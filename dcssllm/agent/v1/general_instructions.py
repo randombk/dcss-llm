@@ -26,8 +26,8 @@ Map Tiles:
   @ : YOU! This is where you are
   . : Walkable ground
   # : Wall. Different color denotes different materials, but these are generally impassible
-  < : Staircase down. There are three on each floor. If you don't see three, there's probably a hidden area that's accessible from another direction or floor
-  > : Staircase up
+  > : Staircase down. There are three on each floor. If you don't see three, there's probably a hidden area that's accessible from another direction or floor
+  < : Staircase up
   + : Door (closed)
   ' : Door (open)
   ≈ : Water (Impassible)
@@ -39,23 +39,22 @@ IMPORTANT: '#' and `≈` represent impassible terrain. You cannot walk through t
 You can see things that are within line of sight to you. Tiles you have explored but are
 out of your line of sight will be displayed in a different shade.
 
-Items on the ground show up as one of these symbols. Some of these symbols also doubles as
-commands you can use to bring up a menu to interact with these items (denoted in parentheses).
-You must be standing on top of, or next to, something in order to interact with it.
+Items on the ground show up as one of these symbols. Some items will auto-pickup when you stand
+on them. For others, you must stand on the same tile as the item to interact with it.
 
-  ) : hand weapons (wield)
-  ( : missiles (Quiver)
-  [ : armour (Wear and Take off)
-  ? : scrolls (read)
-  ! : potions (quaff)
-  = : rings (Put on and Remove)
-  " : amulets (Put on and Remove)
-  % : talismans (eVoke)
-  / : wands (eVoke)
+  ) : hand weapons
+  ( : missiles
+  [ : armour
+  ? : scrolls
+  ! : potions
+  = : rings
+  " : amulets
+  % : talismans
+  / : wands
   : : books (ignore these for now)
-  | : staves (wield)
-  } : miscellaneous items (eVoke)
-  $ : gold ($ counts gold)
+  | : staves
+  } : miscellaneous items
+  $ : gold
 
 The main UI is comprised of four panels, though not all are necessarily visible at once.
                                         
@@ -64,6 +63,8 @@ is a 2D grid of tiles. Each symbol on the map represents a different type of thi
                                         
 The top right panel displays your character's stats, starting with your name and character class, your
 current health and stats, etc. This includes your own name - DO NOT confuse yourself with an enemy!
+This area will also show status effects you are under, such as poison, frozen, etc. These may limit your
+ability to move or attack.
 
 Below this is a list of enemies in the current field of view. Enemies will show up as symbols on the map as well.
 The game will list all visible enemies in the right side panel. Match the symbol and color with symbols on the map
@@ -112,7 +113,8 @@ Use these commands for interacting with the game. THESE ARE ALL CASE SENSITIVE.
           condition, such as low health or monsters nearby. It will also stop if you have already explored
           everywhere you can reach from your current position. Auto-explore will auto-pick up gold and
           certain items.
-    TAB : melee attack nearest monster, moving if necessary
+    TAB : melee attack nearest monster, moving if necessary. This will not work if you are too injured. To fight
+          while too injured, walk into the monster. However, it's often better to try and escape.
 
   Waiting and Resting:
     . : wait a turn
@@ -132,7 +134,7 @@ Use these commands for interacting with the game. THESE ARE ALL CASE SENSITIVE.
     O/C    : Open/Close door
     <      : Climb up staircase
     >      : Climb down staircase
-    ;      : examine occupied tile and pickup part of a single stack
+    ;      : examine the tile you're on
 
   Inventory management:
     , : pick up items (press twice for pick up menu). You must be standing on the same tile as an item to pick it up.
@@ -141,5 +143,13 @@ Use these commands for interacting with the game. THESE ARE ALL CASE SENSITIVE.
         stand on them.
     d : Drop an item
     d#: Drop exact number of items
+    q : Quaff (drink) a potion
+    w : Wield a item
+    r : Read a scroll
+    v : evoke (trigger) a talisman or wand
+  
+  Other useful commands:
+    p : Pray to god. Do this on top of corpses to boost your alignment.
+    a : Use an ability
 
 """

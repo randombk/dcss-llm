@@ -69,12 +69,13 @@ def attach_tool_nodes(graph_builder: StateGraph, tools: list[BaseTool], bot_node
             logger.info("=== TOOL CALL ===")
             logger.info(f"{ai_message.content}")
             logger.info(f"{ai_message.tool_calls}")
+            logger.info("=================")
 
             if enable_terminal_edges:
                 for tool_call in ai_message.tool_calls:
                     tool = tool_map.get(tool_call["name"], None)
                     if tool is not None and tool.return_direct:
-                        logger.info(f"Tool call {tool_call} is terminal")
+                        logger.debug(f"Tool call will end the turn.")
                         return f"_{bot_node}_tools_terminal"
             return f"_{bot_node}_tools"
         return message_node

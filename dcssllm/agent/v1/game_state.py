@@ -1,5 +1,6 @@
 from logging import getLogger
 from dataclasses import dataclass
+import math
 from typing import List, Dict, Tuple, Optional, Any
 
 from dcssllm.agent.util import trim_indent
@@ -296,6 +297,9 @@ class GameState:
 
     def get_summary_without_map(self) -> str:
         """Get a summary of the game state without the map."""
+
+        worn = "\n\nWorn Items:\n" + ("\n".join([f" - {i.name}" for i in self.equipment]) if self.equipment else "None")
+        inventory = "\n\nInventory:\n" + ("\n".join([f" - {i.name}" for i in self.inventory]) if self.inventory else "None")
         return trim_indent(f"""
             Turn: {self.turn_number}
             Player: Level {self.player_level}, HP: {self.player_health[0]}/{self.player_health[1]}, Gold: {self.player_gold}
@@ -303,7 +307,7 @@ class GameState:
             Equipment: {len(self.equipment)} items
             Monsters visible: {len(self.get_nearby_monsters())}
             Items nearby: {len(self.get_nearby_items())}
-        """)
+        """) + worn + inventory
     
     def get_nearby_enemy_summary(self) -> str:
         """Get a summary of the nearby enemies."""
@@ -311,7 +315,7 @@ class GameState:
         if not nearby:
             return "No enemies nearby."
 
-        ret = "\n".join([f" - {m.name} at {m.position} ({dist} tiles away)" for m, dist in nearby])
+        ret = "\n".join([f" - {m.name} at {m.position} ({math.ceil(dist)} tiles away)" for m, dist in nearby])
         return trim_indent(f"{len(nearby)} Enemies nearby:\n{ret}")
 
     def get_delta_summary(self, previous: "GameState") -> str:

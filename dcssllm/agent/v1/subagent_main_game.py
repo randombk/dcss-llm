@@ -33,6 +33,13 @@ class SubagentMainGame:
         self._previous_turn_actions = []
 
         def message_generator(state: AgentState):
+            force_action = None
+            if state['_chatbot_message_number'] > 10:
+                force_action = HumanMessage(f"""
+                    Alright, you've been thinking for too long.
+                    YOU MUST SEND A KEY PRESS NOW.
+                """),
+
             messages = prep_message([
                 SystemMessage(GENERAL_AGENT_INTRO),
                 SystemMessage(GAME_UI_INSTRUCTIONS),
@@ -42,7 +49,8 @@ class SubagentMainGame:
                 HumanMessage(f"The current turn is {state['iteration']}."),
                 self.master.long_term_memory.create_message(),
                 *self.master.tool_game_state.create_message(),
-                *state["messages"]
+                *state["messages"],
+                force_action,
             ])
             return messages, {}
 
@@ -56,7 +64,7 @@ class SubagentMainGame:
         def dummy_user_message(_: AgentState):
             return {
                 "messages": [
-                    HumanMessage("Ok, keep thinking. What do you want to do next?"),
+                    HumanMessage("Ok, keep thinking. What do you want to do next? You should call at least one tool."),
                 ],
             }
         graph_builder.add_node("dummy_user_message", dummy_user_message)
@@ -88,7 +96,9 @@ class SubagentMainGame:
                     Don't be in a rush to press a button.
                              
                     As you learn more about the game (i.e. how to use tools or perform actions), update your
-                    long-term memory to remind yourself of what you've learned.
+                    long-term memory to remind yourself of what you've learned. At the start of each turn, you
+                    should think "What do I know now that I didn't know before?" and "Is this something worth
+                    writing down in my long-term memory?"
                              
                     If you have nothing better to do, using autoexplore ('o')is a good idea. Once you have explored
                     the area, proceed to the next floor.
